@@ -2,6 +2,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.SparkConf
 import org.apache.spark.sql
+import org.apache.spark.sql.SaveMode
 
 case class Iris(sepalLength: Double, sepalWidth:Double, petalLength:Double, petalWidth:Double, species:String)
 
@@ -21,6 +22,6 @@ object IrisApp {
 
 		val means = iris.groupBy("species").mean("sepalLength", "sepalWidth", "petalLength", "petalWidth")
 		                .repartition(1)
-		means.write.format("json").save("/tmp/iris/means")
+		means.write.format("json").mode(SaveMode.Overwrite).save("/tmp/iris/means")
 	}
 }
