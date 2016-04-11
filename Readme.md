@@ -1,6 +1,6 @@
 # 1 Preparation on the HDP cluster 
 
-**Note:** The description here is for HDP 2.4.0.0
+**Note:** The description and code of thei repository is for HDP 2.3.2.x and 2.4.0.0
 
 For Hortonworks Data Platform 2.4 the Spark assembly file is not on HDFS. It is helpful to (or ask the HDP admin to) copy the assembly to its default location `hdfs://hdp//hdp/apps/2.4.0.0-169/spark//spark/`
 
@@ -21,10 +21,75 @@ hdfs dfs -put "/usr/hdp/$HDP_VERSION/spark/lib/$SPARK_JAR" "/hdp/apps/$HDP_VERSI
 ```
 
 
+# 2 Load data and copy it into HDFS
 
-# 2 Submit a project to Spark from your workstation via python script
+Only a small data set, however sufficient for a sample
 
-## 2.1 Submit job
+```bash
+wget https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data
+```
+
+Create a project folder in HDFS using WebHDFS
+
+```bash
+export WEBHDFS_HOST=http://beebox01:50070
+
+curl -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project?op=MKDIRS"
+# {"boolean":true}
+```
+
+Upload data to project folder using WebHDFS
+
+```bash
+curl -i -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project/iris.data?op=CREATE&overwrite=true"
+# HTTP/1.1 307 TEMPORARY_REDIRECT
+# Cache-Control: no-cache
+# Expires: Sun, 10 Apr 2016 11:35:44 GMT
+# Date: Sun, 10 Apr 2016 11:35:44 GMT
+# Pragma: no-cache
+# Expires: Sun, 10 Apr 2016 11:35:44 GMT
+# Date: Sun, 10 Apr 2016 11:35:44 GMT
+# Pragma: no-cache
+# Location: http://beebox06.localdomain:50075/webhdfs/v1/tmp/simple-project/simple-project_2.10-1.0.jar?op=CREATE&namenoderpcaddress=beebox01.localdomain:8020&createflag=&# createparent=true&overwrite=true
+# Content-Type: application/octet-stream
+# Content-Length: 0
+# Server: Jetty(6.1.26.hwx)
+
+LOCATION="http://beebox06.localdomain:50075/webhdfs/v1/tmp/simple-project/simple-project_2.10-1.0.jar?op=CREATE&namenoderpcaddress=beebox01.localdomain:8020&createflag=&createparent=true&overwrite=true"
+
+curl -i -X PUT -T "iris.data" "$LOCATION"
+```
+
+
+
+# 3 Submit a project to Spark from your workstation via python script
+
+## 3.1 Create Spark project and copy it to HDFS
+
+Simple project to calculate mean of each feature per species
+
+```bash
+cd simple-project
+```
+
+Copy the right `iris.sbt-HDP*` to `iris.sbt`
+
+```bash
+sbt package
+
+export APP_FILE=simple-project_2.10-1.0.jar
+
+curl -i -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project/$APP_FILE?op=CREATE&overwrite=true"
+# take Location header, see above
+
+LOCATION="http://..."
+
+curl -i -X PUT -T "target/scala-2.10/$APP_FILE" "$LOCATION"
+
+cd ..
+```
+
+## 3.2 Submit job
 
 Edit Config section of python script and call
 
@@ -39,7 +104,7 @@ python spark-remote-submit.py
 # ==> Job tracking URL: http://192.168.56.239:8088/ws/v1/cluster/apps/application_1460392460492_0025
 ```
 
-## 2.2 Track job
+## 3.3 Track job
 
 ```bash
 curl -s http://192.168.56.239:8088/ws/v1/cluster/apps/application_1460392460492_0025 | jq .
@@ -79,70 +144,17 @@ curl -s http://192.168.56.239:8088/ws/v1/cluster/apps/application_1460392460492_
 
 
 
-# 3 Manually submit a project to Spark from your workstation
+# 4 Manually submit a project to Spark from your workstation
 
-## 3.1 Load data and copy it into HDFS
 
-Only a small data set, however sufficient for a sample
+## 4.1 Create Spark project and copy it to HDFS
 
-```bash
-wget https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data
-```
+see 3.1
 
-Create a project folder in HDFS using WebHDFS
 
-```bash
-export WEBHDFS_HOST=http://beebox01:50070
+## 4.2 Populate the control files for the YARN REST API
 
-curl -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project?op=MKDIRS"
-# {"boolean":true}
-```
-
-Upload data to project folder using WebHDFS
-
-```bash
-curl -i -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project/iris.data?op=CREATE&overwrite=true"
-# HTTP/1.1 307 TEMPORARY_REDIRECT
-# Cache-Control: no-cache
-# Expires: Sun, 10 Apr 2016 11:35:44 GMT
-# Date: Sun, 10 Apr 2016 11:35:44 GMT
-# Pragma: no-cache
-# Expires: Sun, 10 Apr 2016 11:35:44 GMT
-# Date: Sun, 10 Apr 2016 11:35:44 GMT
-# Pragma: no-cache
-# Location: http://beebox06.localdomain:50075/webhdfs/v1/tmp/simple-project/simple-project_2.10-1.0.jar?op=CREATE&namenoderpcaddress=beebox01.localdomain:8020&createflag=&# createparent=true&overwrite=true
-# Content-Type: application/octet-stream
-# Content-Length: 0
-# Server: Jetty(6.1.26.hwx)
-
-LOCATION="http://beebox06.localdomain:50075/webhdfs/v1/tmp/simple-project/simple-project_2.10-1.0.jar?op=CREATE&namenoderpcaddress=beebox01.localdomain:8020&createflag=&createparent=true&overwrite=true"
-
-curl -i -X PUT -T "iris.data" "$LOCATION"
-```
-
-## 3.2 Create Spark project and copy it to HDFS
-
-Simple project to calculate mean of each feature per species
-
-```bash
-cd simple-project
-sbt package
-
-export APP_FILE=simple-project_2.10-1.0.jar
-
-curl -i -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project/$APP_FILE?op=CREATE&overwrite=true"
-# take Location header, see above
-
-LOCATION="http://..."
-
-curl -i -X PUT -T "target/scala-2.10/$APP_FILE" "$LOCATION"
-
-cd ..
-```
-
-## 3.3 Populate the control files for the YARN REST API
-
-### 3.3.1 Spark properties
+### 4.2.1 Spark properties
 
 Copy `spark-yarn.properties.template` to `spark-yarn.properties` and edit keys if necessary.
 
@@ -156,7 +168,7 @@ LOCATION="http://..."
 curl -i -X PUT -T "spark-yarn.properties" "$LOCATION"
 ```
 
-### 3.3.2 The JSON job file for the YARN REST API
+### 4.2.2 The JSON job file for the YARN REST API
 
 For caching purposes Spark needs file sizes and modification times of all project files. The following commands use the json processor `jq` from [https://stedolan.github.io/jq/](https://stedolan.github.io/jq/)
 
@@ -192,9 +204,9 @@ Note: The properties file is only for the Application Master and can be ignored 
 
 Also adapt versions in `CLASSPATH` of section `environment` and in the `command`
 
-## 3.4 Submit a Spark job to YARN
+## 4.3 Submit a Spark job to YARN
 
-### 3.4.1 Create a YARN application
+### 4.3.1 Create a YARN application
 
 ```bash
 export HADOOP_RM=http://beebox04:8088
@@ -212,7 +224,7 @@ curl -s -X POST $HADOOP_RM/ws/v1/cluster/apps/new-application | jq .
 Edit `spark-yarn.json` again and modify the `application-id` to hold the newly create id.
 
 
-### 3.4.2 Submit the Spark job
+### 4.3.2 Submit the Spark job
 
 ```bash 
 curl -s -i -X POST -H "Content-Type: application/json" $HADOOP_RM/ws/v1/cluster/apps --data-binary spark-yar.json 
@@ -233,7 +245,7 @@ curl -s -i -X POST -H "Content-Type: application/json" $HADOOP_RM/ws/v1/cluster/
 ```
 
 
-### 3.4.3 Get job status and result
+### 4.3.3 Get job status and result
 
 Take the `Location` header from above:
 
@@ -275,7 +287,9 @@ curl -s http://beebox04:8088/ws/v1/cluster/apps/application_1460195242962_0054 |
 # }
 ```
 
-Get the result (partition name depends on run, find it via WebHDFS and LISTSTATUS)
+#5 Get the result
+
+Note: The partition name depends on run, find it via WebHDFS and `LISTSTATUS`
 
 ```bash
 curl -s -L $WEBHDFS_HOST/webhdfs/v1/tmp/iris/means/part-r-00000-a1d003bf-246b-47b5-9d61-10dede1c3981?op=OPEN | jq .
