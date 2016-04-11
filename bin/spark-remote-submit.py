@@ -104,14 +104,12 @@ def submitSparkJob(sparkJson):
 print "Checking project folder ..."
 if not pathExists(projectFolder):
     ret = createDir(projectFolder)
-    if not ret[0]:
-        raise Exception(json.dumps(ret[1]))
+    if not ret[0]: raise Exception(json.dumps(ret[1]))
 
 
 print "Uploading App Jar ..."
 ret = uploadFile(appJar, remoteAppJar)
-if not ret[0]:
-    raise Exception(ret[1])
+if not ret[0]: raise Exception(ret[1])
 
 
 print "Uploading Spark properties"
@@ -122,8 +120,7 @@ with open(sparkProperties, "w") as fd:
     fd.write(properties)
 
 ret = uploadFile(sparkProperties, remoteSparkProperties)
-if not ret[0]:
-    raise Exception(ret[1])
+if not ret[0]: raise Exception(ret[1])
 
 
 print "Creating Spark Job file ..."
@@ -169,7 +166,7 @@ sparkJob = {
       "command": "{{JAVA_HOME}}/bin/java -server -Xmx1024m " + \
                  "-Dhdp.version=%s " % hdpVersion + \
                  "-Dspark.yarn.app.container.log.dir=/hadoop/yarn/log/rest-api " + \
-                 "-Dspark.app.name=SimpleProject " + \
+                 "-Dspark.app.name=%s " % appName + \
                  "org.apache.spark.deploy.yarn.ApplicationMaster " + \
                  # "--properties-file {{PWD}}/__app__.properties " + \
                  "--class IrisApp --jar __app__.jar " + \
@@ -251,5 +248,5 @@ with open("spark-yarn.json", "w") as fd:
   fd.write(sparkJobJson)
 
 response = submitSparkJob(sparkJobJson)
-print "\n==> Job racking URL:", response.headers["Location"]
+print "\n==> Job tracking URL:", response.headers["Location"]
 
