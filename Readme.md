@@ -20,9 +20,68 @@ hdfs dfs -mkdir "/hdp/apps/$HDP_VERSION/spark/"
 hdfs dfs -put "/usr/hdp/$HDP_VERSION/spark/lib/$SPARK_JAR" "/hdp/apps/$HDP_VERSION/spark/spark-hdp-assembly.jar"
 ```
 
-# 2 Submit a project to Spark from your workstation
 
-## 2.1 Load data and copy it into HDFS
+
+# 2 Submit a project to Spark from your workstation via python script
+
+## 2.1 Submit job
+
+Edit Config section of python script and call
+
+```bash
+python spark-remote-submit.py
+# Checking project folder ...
+# Uploading App Jar ...
+# Uploading Spark properties
+# Creating Spark Job file ...
+# Submitting Spark Job ...
+# 
+# ==> Job tracking URL: http://192.168.56.239:8088/ws/v1/cluster/apps/application_1460392460492_0025
+```
+
+## 2.2 Track job
+
+```bash
+curl -s http://192.168.56.239:8088/ws/v1/cluster/apps/application_1460392460492_0025 | jq .
+# {
+#   "app": {
+#     "id": "application_1460392460492_0025",
+#     "user": "dr.who",
+#     "name": "SimpleProject",
+#     "queue": "default",
+#     "state": "FINISHED",
+#     "finalStatus": "SUCCEEDED",
+#     "progress": 100,
+#     "trackingUI": "History",
+#     "trackingUrl": "http://hdp-sa-239.localdomain:8088/proxy/application_1460392460492_0025/",
+#     "diagnostics": "",
+#     "clusterId": 1460392460492,
+#     "applicationType": "YARN",
+#     "applicationTags": "",
+#     "startedTime": 1460413592029,
+#     "finishedTime": 1460413612191,
+#     "elapsedTime": 20162,
+#     "amContainerLogs": "http://hdp-sa-239:8042/node/containerlogs/container_e03_1460392460492_0025_01_000001/dr.who",
+#     "amHostHttpAddress": "hdp-sa-239:8042",
+#     "allocatedMB": -1,
+#     "allocatedVCores": -1,
+#     "runningContainers": -1,
+#     "memorySeconds": 85603,
+#     "vcoreSeconds": 51,
+#     "preemptedResourceMB": 0,
+#     "preemptedResourceVCores": 0,
+#     "numNonAMContainerPreempted": 0,
+#     "numAMContainerPreempted": 0,
+#     "logAggregationStatus": "SUCCEEDED"
+#   }
+# }
+```
+
+
+
+# 3 Manually submit a project to Spark from your workstation
+
+## 3.1 Load data and copy it into HDFS
 
 Only a small data set, however sufficient for a sample
 
@@ -61,7 +120,7 @@ LOCATION="http://beebox06.localdomain:50075/webhdfs/v1/tmp/simple-project/simple
 curl -i -X PUT -T "iris.data" "$LOCATION"
 ```
 
-## 2.2 Create Spark project and copy it to HDFS
+## 3.2 Create Spark project and copy it to HDFS
 
 Simple project to calculate mean of each feature per species
 
@@ -81,9 +140,9 @@ curl -i -X PUT -T "target/scala-2.10/$APP_FILE" "$LOCATION"
 cd ..
 ```
 
-## 2.3 Populate the control files for the YARN REST API
+## 3.3 Populate the control files for the YARN REST API
 
-### 2.3.1 Spark properties
+### 3.3.1 Spark properties
 
 Copy `spark-yarn.properties.template` to `spark-yarn.properties` and edit keys if necessary.
 
@@ -97,7 +156,7 @@ LOCATION="http://..."
 curl -i -X PUT -T "spark-yarn.properties" "$LOCATION"
 ```
 
-### 2.3.2 The JSON job file for the YARN REST API
+### 3.3.2 The JSON job file for the YARN REST API
 
 For caching purposes Spark needs file sizes and modification times of all project files. The following commands use the json processor `jq` from [https://stedolan.github.io/jq/](https://stedolan.github.io/jq/)
 
@@ -133,9 +192,9 @@ Note: The properties file is only for the Application Master and can be ignored 
 
 Also adapt versions in `CLASSPATH` of section `environment` and in the `command`
 
-## 2.4 Submit a Spark job to YARN
+## 3.4 Submit a Spark job to YARN
 
-### 2.4.1 Create a YARN application
+### 3.4.1 Create a YARN application
 
 ```bash
 export HADOOP_RM=http://beebox04:8088
@@ -153,7 +212,7 @@ curl -s -X POST $HADOOP_RM/ws/v1/cluster/apps/new-application | jq .
 Edit `spark-yarn.json` again and modify the `application-id` to hold the newly create id.
 
 
-### 2.4.2 Submit the Spark job
+### 3.4.2 Submit the Spark job
 
 ```bash 
 curl -s -i -X POST -H "Content-Type: application/json" $HADOOP_RM/ws/v1/cluster/apps --data-binary spark-yar.json 
@@ -174,7 +233,7 @@ curl -s -i -X POST -H "Content-Type: application/json" $HADOOP_RM/ws/v1/cluster/
 ```
 
 
-### 2.4.3 Get job status and result
+### 3.4.3 Get job status and result
 
 Take the `Location` header from above:
 
