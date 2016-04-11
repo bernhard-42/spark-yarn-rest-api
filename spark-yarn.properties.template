@@ -1,5 +1,3 @@
-spark.app.name=<<<EDIT>>>
-spark.yarn.historyServer.address=beebox01.localdomain\:18080
 spark.history.ui.port=18080
 spark.yarn.submit.file.replication=3
 spark.yarn.executor.memoryOverhead=384

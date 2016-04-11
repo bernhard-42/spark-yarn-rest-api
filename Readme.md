@@ -4,10 +4,20 @@
 
 For Hortonworks Data Platform 2.4 the Spark assembly file is not on HDFS. It is helpful to (or ask the HDP admin to) copy the assembly to its default location `hdfs://hdp//hdp/apps/2.4.0.0-169/spark//spark/`
 
+- HDP 2.3.2: 
+	- Version: 2.3.2.0-2950
+	- Spark Jar: /usr/hdp/2.3.2.0-2950/spark/lib/spark-assembly-1.4.1.2.3.2.0-2950-hadoop2.7.1.2.3.2.0-2950.jar
+- HDP 2.4.0: 
+	- Version: 2.4.0.0-169  
+	- Spark Jar: /usr/hdp/2.4.0.0-169/spark/lib/spark-assembly-1.6.0.2.4.0.0-169-hadoop2.7.1.2.4.0.0-169.jar
+
 ```bash
+HDP_VERSION=2.3.2.0-2950
+SPARK_JAR=spark-assembly-1.4.1.2.3.2.0-2950-hadoop2.7.1.2.3.2.0-2950.jar
+
 sudo su - hdfs
-hdfs dfs -mkdir "/hdp/apps/2.4.0.0-169/spark/"
-hdfs dfs -put "/usr/hdp/2.4.0.0-169/spark/lib/spark-assembly-1.6.0.2.4.0.0-169-hadoop2.7.1.2.4.0.0-169.jar" "/hdp/apps/2.4.0.0-169/spark/spark-hdp-assembly.jar"
+hdfs dfs -mkdir "/hdp/apps/$HDP_VERSION/spark/"
+hdfs dfs -put "/usr/hdp/$HDP_VERSION/spark/lib/$SPARK_JAR" "/hdp/apps/$HDP_VERSION/spark/spark-hdp-assembly.jar"
 ```
 
 # 2 Submit a project to Spark from your workstation
@@ -75,7 +85,7 @@ cd ..
 
 ### 2.3.1 Spark properties
 
-Copy `spark-yarn.properties.template` to `spark-yarn.properties` and edit the first two lines (`spark.app.name`, `spark.yarn.historyServer.address=beebox01.localdomain\:18080`)
+Copy `spark-yarn.properties.template` to `spark-yarn.properties` and edit keys if necessary.
 
 Upload `spark-yarn.properties` to the project folder in HDFS
 
@@ -142,16 +152,11 @@ curl -s -X POST $HADOOP_RM/ws/v1/cluster/apps/new-application | jq .
 
 Edit `spark-yarn.json` again and modify the `application-id` to hold the newly create id.
 
-### 2.4.2 Delete the job output folder
 
-```bash
-curl -i -X DELETE "$HADOOP_RM/webhdfs/v1//tmp/iris/means?op=DELETE&recursive=true"
-```
-
-### 2.4.3 Submit the Spark job
+### 2.4.2 Submit the Spark job
 
 ```bash 
-curl -s -X POST -H "Content-Type: application/json" $HADOOP_RM/ws/v1/cluster/apps --data-binary spark-yar.json 
+curl -s -i -X POST -H "Content-Type: application/json" $HADOOP_RM/ws/v1/cluster/apps --data-binary spark-yar.json 
 # HTTP/1.1 100 Continue
 # 
 # HTTP/1.1 202 Accepted
@@ -168,7 +173,8 @@ curl -s -X POST -H "Content-Type: application/json" $HADOOP_RM/ws/v1/cluster/app
 # Server: Jetty(6.1.26.hwx)
 ```
 
-### 2.4.4 Get job status and result
+
+### 2.4.3 Get job status and result
 
 Take the `Location` header from above:
 
