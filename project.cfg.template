@@ -4,11 +4,12 @@ hdpVersion = 2.4.0.0-169
 hadoopNameNode = <<namenode>>:8020
 # Without Knox:
 # hadoopResourceManager = http://<<resource manager>>:8088/ws/v1
-# hadoopWebhdfsHost = <<namenode>>:50070/webhdfs/v1
+# hadoopWebhdfsHost = http://<<namenode>>:50070/webhdfs/v1
 # With Knox:
 hadoopResourceManager = https://<<knox gateway>>:8443/gateway/default/resourcemanager/v1
 hadoopWebhdfsHost = https://<<knox gateway>>:8443/gateway/default/webhdfs/v1
 remoteSparkJar = /hdp/apps/2.4.0.0-169/spark/spark-hdp-assembly.jar
+validateKnoxSSL = False
 
 [Project]
 projectFolder = /tmp/simple-project

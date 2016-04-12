@@ -20,6 +20,7 @@ hadoopNameNode = config.get("Hadoop", "hadoopNameNode")
 hadoopResourceManager = config.get("Hadoop", "hadoopResourceManager")
 hadoopWebhdfsHost = config.get("Hadoop", "hadoopWebhdfsHost")
 remoteSparkJar = config.get("Hadoop", "remoteSparkJar")
+validateKnoxSSL = config.getboolean("Hadoop", "validateKnoxSSL")
 
 projectFolder = config.get("Project", "projectFolder")
 appName = config.get("Project", "appName")
@@ -51,12 +52,12 @@ def createHdfsPath(path):
 
 def webhdfsGetRequest(path, op, allow_redirects=False):
     url = os.path.join(hadoopWebhdfsHost, path.strip("/"))
-    response = requests.get("%s?op=%s" % (url, op), allow_redirects=allow_redirects, verify=False, auth=(username, password))
+    response = requests.get("%s?op=%s" % (url, op), allow_redirects=allow_redirects, verify=validateKnoxSSL, auth=(username, password))
     return response.json()
 
 def webhdfsPutRequest(path, op, allow_redirects=False):
     url = os.path.join(hadoopWebhdfsHost, path.strip("/"))
-    response = requests.put("%s?op=%s" % (url, op), "", allow_redirects=allow_redirects, verify=False, auth=(username, password))
+    response = requests.put("%s?op=%s" % (url, op), "", allow_redirects=allow_redirects, verify=validateKnoxSSL, auth=(username, password))
     return response
 
 def pathExists(path):
@@ -72,7 +73,7 @@ def uploadFile(localFile, remoteFile):
     location = response.headers.get("Location")
     if location:
         with open(localFile, "rb") as fd:
-            response = requests.put(location, fd, verify=False, auth=(username, password))
+            response = requests.put(location, fd, verify=validateKnoxSSL, auth=(username, password))
             return (True, response.text)
     return(False, "")
 
@@ -87,13 +88,13 @@ def createCacheValue(path, size, timestamp):
 
 def createNewApplication():
   url = os.path.join(hadoopResourceManager, "cluster/apps/new-application")
-  response = requests.post(url, "", verify=False, auth=(username, password))
+  response = requests.post(url, "", verify=validateKnoxSSL, auth=(username, password))
   return (True, response.json())
 
 
 def submitSparkJob(sparkJson):
   url = os.path.join(hadoopResourceManager, "cluster/apps")
-  response = requests.post(url, sparkJson, headers={"Content-Type": "application/json"}, verify=False, auth=(username, password))
+  response = requests.post(url, sparkJson, headers={"Content-Type": "application/json"}, verify=validateKnoxSSL, auth=(username, password))
   return response
 
 
