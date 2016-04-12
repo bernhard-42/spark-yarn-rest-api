@@ -3,3 +3,4 @@ spark-yarn.json
 simple-project/target/
 simple-project/project/
 simple-project/iris.data
+project.cfg
