@@ -1,7 +1,7 @@
 {
   "am-container-spec": {
     "commands": {
-      "command": "{{JAVA_HOME}}/bin/java -server -Xmx1024m -Dhdp.version=2.3.2.0-2950 -Dspark.yarn.app.container.log.dir=/hadoop/yarn/log/rest-api -Dspark.app.name=SimpleProject org.apache.spark.deploy.yarn.ApplicationMaster --class IrisApp --jar __app__.jar --arg '--class' --arg 'IrisApp' 1><LOG_DIR>/AppMaster.stdout 2><LOG_DIR>/AppMaster.stderr"
+      "command": "{{JAVA_HOME}}/bin/java -server -Xmx1024m -Dhdp.version=2.4.0.0-169 -Dspark.yarn.app.container.log.dir=/hadoop/yarn/log/rest-api -Dspark.app.name=SimpleProject org.apache.spark.deploy.yarn.ApplicationMaster --class IrisApp --jar __app__.jar --arg '--class' --arg 'IrisApp' 1><LOG_DIR>/AppMaster.stdout 2><LOG_DIR>/AppMaster.stderr"
     }, 
     "environment": {
       "entry": [
@@ -15,23 +15,23 @@
         }, 
         {
           "key": "HDP_VERSION", 
-          "value": "2.3.2.0-2950"
+          "value": "2.4.0.0-169"
         }, 
         {
           "key": "CLASSPATH", 
-          "value": "{{PWD}}<CPS>__spark__.jar<CPS>{{PWD}}/__app__.jar{{PWD}}/__app__.properties<CPS>{{HADOOP_CONF_DIR}}<CPS>/usr/hdp/current/hadoop-client/*<CPS>/usr/hdp/current/hadoop-client/lib/*<CPS>/usr/hdp/current/hadoop-hdfs-client/*<CPS>/usr/hdp/current/hadoop-hdfs-client/lib/*<CPS>/usr/hdp/current/hadoop-yarn-client/*<CPS>/usr/hdp/current/hadoop-yarn-client/lib/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/common/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/common/lib/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/yarn/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/yarn/lib/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/hdfs/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/hdfs/lib/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/tools/lib/*<CPS><CPS>/etc/hadoop/conf/secure<CPS>"
+          "value": "{{PWD}}<CPS>__spark__.jar<CPS>{{PWD}}/__app__.jar{{PWD}}/__app__.properties<CPS>{{HADOOP_CONF_DIR}}<CPS>/usr/hdp/current/hadoop-client/*<CPS>/usr/hdp/current/hadoop-client/lib/*<CPS>/usr/hdp/current/hadoop-hdfs-client/*<CPS>/usr/hdp/current/hadoop-hdfs-client/lib/*<CPS>/usr/hdp/current/hadoop-yarn-client/*<CPS>/usr/hdp/current/hadoop-yarn-client/lib/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/common/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/common/lib/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/yarn/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/yarn/lib/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/hdfs/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/hdfs/lib/*<CPS>{{PWD}}/mr-framework/hadoop/share/hadoop/tools/lib/*<CPS>/usr/hdp/2.4.0.0-169/hadoop/lib/hadoop-lzo-0.6.0.2.4.0.0-169.jar<CPS>/etc/hadoop/conf/secure<CPS>"
         }, 
         {
           "key": "SPARK_YARN_CACHE_FILES", 
-          "value": "hdfs://192.168.56.239:8020/tmp/simple-project/simple-project.jar#__app__.jar,hdfs://192.168.56.239:8020/hdp/apps/2.3.2.0-2950/spark/spark-hdp-assembly.jar#__spark__.jar"
+          "value": "hdfs://__NAMENODE__:8020/tmp/simple-project/simple-project.jar#__app__.jar,hdfs://__NAMENODE__:8020/hdp/apps/2.4.0.0-169/spark/spark-hdp-assembly.jar#__spark__.jar"
         }, 
         {
           "key": "SPARK_YARN_CACHE_FILES_FILE_SIZES", 
-          "value": "10328,167557539"
+          "value": "10328,191724642"
         }, 
         {
           "key": "SPARK_YARN_CACHE_FILES_TIME_STAMPS", 
-          "value": "1460413591973,1460384302426"
+          "value": "1460440711376,1458070071045"
         }, 
         {
           "key": "SPARK_YARN_CACHE_FILES_VISIBILITIES", 
@@ -44,9 +44,9 @@
         {
           "key": "__spark__.jar", 
           "value": {
-            "resource": "hdfs://192.168.56.239:8020/hdp/apps/2.3.2.0-2950/spark/spark-hdp-assembly.jar", 
-            "size": 167557539, 
-            "timestamp": 1460384302426, 
+            "resource": "hdfs://__NAMENODE__:8020/hdp/apps/2.4.0.0-169/spark/spark-hdp-assembly.jar", 
+            "size": 191724642, 
+            "timestamp": 1458070071045, 
             "type": "FILE", 
             "visibility": "APPLICATION"
           }
@@ -54,9 +54,9 @@
         {
           "key": "__app__.jar", 
           "value": {
-            "resource": "hdfs://192.168.56.239:8020/tmp/simple-project/simple-project.jar", 
+            "resource": "hdfs://__NAMENODE__:8020/tmp/simple-project/simple-project.jar", 
             "size": 10328, 
-            "timestamp": 1460413591973, 
+            "timestamp": 1460440711376, 
             "type": "FILE", 
             "visibility": "APPLICATION"
           }
@@ -64,9 +64,9 @@
         {
           "key": "__app__.properties", 
           "value": {
-            "resource": "hdfs://192.168.56.239:8020/tmp/simple-project/spark-yarn.properties", 
+            "resource": "hdfs://__NAMENODE__:8020/tmp/simple-project/spark-yarn.properties", 
             "size": 677, 
-            "timestamp": 1460413592001, 
+            "timestamp": 1460440712905, 
             "type": "FILE", 
             "visibility": "APPLICATION"
           }
@@ -74,7 +74,7 @@
       ]
     }
   }, 
-  "application-id": "application_1460392460492_0025", 
+  "application-id": "application_1459860189694_0002", 
   "application-name": "SimpleProject", 
   "application-type": "YARN", 
   "keep-containers-across-application-attempts": false, 
