@@ -1,6 +1,6 @@
 # 1 Preparation on the HDP cluster 
 
-**Note:** The description and code of thei repository is for HDP 2.3.2.x and 2.4.0.0
+**Note:** The description and code of this repository is for HDP 2.3.2.x and 2.4.0.0
 
 For Hortonworks Data Platform 2.4 the Spark assembly file is not on HDFS. It is helpful to (or ask the HDP admin to) copy the assembly to its default location `hdfs://hdp//hdp/apps/2.4.0.0-169/spark//spark/`
 
@@ -12,10 +12,10 @@ For Hortonworks Data Platform 2.4 the Spark assembly file is not on HDFS. It is 
 	- Spark Jar: /usr/hdp/2.4.0.0-169/spark/lib/spark-assembly-1.6.0.2.4.0.0-169-hadoop2.7.1.2.4.0.0-169.jar
 
 ```bash
-HDP_VERSION=2.3.2.0-2950
-SPARK_JAR=spark-assembly-1.4.1.2.3.2.0-2950-hadoop2.7.1.2.3.2.0-2950.jar
-
 sudo su - hdfs
+HDP_VERSION=2.4.0.0-169
+SPARK_JAR=spark-assembly-1.6.0.2.4.0.0-169-hadoop2.7.1.2.4.0.0-169.jar
+
 hdfs dfs -mkdir "/hdp/apps/$HDP_VERSION/spark/"
 hdfs dfs -put "/usr/hdp/$HDP_VERSION/spark/lib/$SPARK_JAR" "/hdp/apps/$HDP_VERSION/spark/spark-hdp-assembly.jar"
 ```
