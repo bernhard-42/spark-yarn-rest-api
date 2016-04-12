@@ -100,7 +100,7 @@ If you use Knox, set the KNOX_CREDENTIALS environment variable
 export KNOX_CREDENTIALS=username:password
 ```
 
-Then edit `project.cfg` and call
+Then copy `project.cfg.template` to `project.cfg`, edit hostnames and call
 
 ```bash
 python spark-remote-submit.py
