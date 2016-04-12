@@ -91,7 +91,7 @@ cd ..
 
 ## 3.2 Submit job
 
-Edit Config section of python script and call
+Edit `project.cfg` and call
 
 ```bash
 python spark-remote-submit.py

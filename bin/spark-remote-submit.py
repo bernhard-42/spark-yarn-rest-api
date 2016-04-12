@@ -1,6 +1,8 @@
+import os
 import os.path
 import requests
 import json
+import ConfigParser
 
 
 # # # # # # # # # # # #
@@ -9,33 +11,31 @@ import json
 #
 # # # # # # # # # # # #
 
-javaHome = "/usr/jdk64/jdk1.8.0_60/"
+config = ConfigParser.ConfigParser()
+config.read(os.path.join(os.getcwd(), 'project.cfg'))
 
-hdpVersion = "2.3.2.0-2950"
-hadoopNameNode = "192.168.56.239:8020"
-hadoopResourceManager = "http://192.168.56.239:8088/ws/v1"
-hadoopWebhdfsHost = "http://192.168.56.239:50070/webhdfs/v1"
+javaHome = config.get("Hadoop", "javaHome")
+hdpVersion = config.get("Hadoop", "hdpVersion")
+hadoopNameNode = config.get("Hadoop", "hadoopNameNode")
+hadoopResourceManager = config.get("Hadoop", "hadoopResourceManager")
+hadoopWebhdfsHost = config.get("Hadoop", "hadoopWebhdfsHost")
+remoteSparkJar = config.get("Hadoop", "remoteSparkJar")
+
+projectFolder = config.get("Project", "projectFolder")
+appName = config.get("Project", "appName")
+appJar = config.get("Project", "appJar")
+sparkProperties = config.get("Project", "sparkProperties")
+applicationMasterMemory = config.getint("Project", "applicationMasterMemory")
+applicationMasterCores = config.getint("Project", "applicationMasterCores")
+
+# computed, not loaded from project.cfg
+remoteAppJar = os.path.join(projectFolder, "simple-project.jar")
+remoteSparkProperties = os.path.join(projectFolder, sparkProperties)
 
 lzoJar = { 
   "2.3.2.0-2950": "",
   "2.4.0.0-169": "/usr/hdp/2.4.0.0-169/hadoop/lib/hadoop-lzo-0.6.0.2.4.0.0-169.jar"
 }
-
-remoteSparkJar = "/hdp/apps/%s/spark/spark-hdp-assembly.jar" % hdpVersion
-
-projectFolder = "/tmp/simple-project"
-
-appName = "SimpleProject"
-
-appJar = "simple-project/target/scala-2.10/simple-project_2.10-1.0.jar"
-remoteAppJar = os.path.join(projectFolder, "simple-project.jar")
-
-sparkProperties = "spark-yarn.properties"
-remoteSparkProperties = os.path.join(projectFolder, sparkProperties)
-
-applicationMasterMemory = 1024
-applicationMasterCores = 1
-
 
 
 # # # # # # # # # # # #
