@@ -37,6 +37,8 @@ lzoJar = {
   "2.4.0.0-169": "/usr/hdp/2.4.0.0-169/hadoop/lib/hadoop-lzo-0.6.0.2.4.0.0-169.jar"
 }
 
+username = ""
+password = ""
 
 # # # # # # # # # # # #
 #
@@ -49,12 +51,12 @@ def createHdfsPath(path):
 
 def webhdfsGetRequest(path, op, allow_redirects=False):
     url = os.path.join(hadoopWebhdfsHost, path.strip("/"))
-    response = requests.get("%s?op=%s" % (url, op), allow_redirects=allow_redirects)
+    response = requests.get("%s?op=%s" % (url, op), allow_redirects=allow_redirects, verify=False, auth=(username, password))
     return response.json()
 
 def webhdfsPutRequest(path, op, allow_redirects=False):
     url = os.path.join(hadoopWebhdfsHost, path.strip("/"))
-    response = requests.put("%s?op=%s" % (url, op), "", allow_redirects=allow_redirects)
+    response = requests.put("%s?op=%s" % (url, op), "", allow_redirects=allow_redirects, verify=False, auth=(username, password))
     return response
 
 def pathExists(path):
@@ -70,7 +72,7 @@ def uploadFile(localFile, remoteFile):
     location = response.headers.get("Location")
     if location:
         with open(localFile, "rb") as fd:
-            response = requests.put(location, fd)
+            response = requests.put(location, fd, verify=False, auth=(username, password))
             return (True, response.text)
     return(False, "")
 
@@ -85,13 +87,13 @@ def createCacheValue(path, size, timestamp):
 
 def createNewApplication():
   url = os.path.join(hadoopResourceManager, "cluster/apps/new-application")
-  response = requests.post(url, "")
+  response = requests.post(url, "", verify=False, auth=(username, password))
   return (True, response.json())
 
 
 def submitSparkJob(sparkJson):
   url = os.path.join(hadoopResourceManager, "cluster/apps")
-  response = requests.post(url, sparkJson, headers={"Content-Type": "application/json"})
+  response = requests.post(url, sparkJson, headers={"Content-Type": "application/json"}, verify=False, auth=(username, password))
   return response
 
 
@@ -100,6 +102,11 @@ def submitSparkJob(sparkJson):
 # Main
 #
 # # # # # # # # # # # #
+
+print "Getting credentials from environment variable KNOX_CREDENTIALS as username:password..."
+if os.environ.get("KNOX_CREDENTIALS"):
+  username, password = os.environ["KNOX_CREDENTIALS"].split(":")
+
 
 print "Checking project folder ..."
 if not pathExists(projectFolder):
@@ -248,5 +255,5 @@ with open("spark-yarn.json", "w") as fd:
   fd.write(sparkJobJson)
 
 response = submitSparkJob(sparkJobJson)
-print "\n==> Job tracking URL:", response.headers["Location"]
+print "\n==> Job tracking URL:", response.headers["Location"].replace("apps//", "apps/")
 

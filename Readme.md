@@ -64,6 +64,9 @@ curl -i -X PUT -T "iris.data" "$LOCATION"
 
 # 3 Submit a project to Spark from your workstation via python script
 
+Note: Install `requests` module: `pip install requests`
+
+
 ## 3.1 Create Spark project and copy it to HDFS
 
 Simple project to calculate mean of each feature per species
@@ -91,7 +94,13 @@ cd ..
 
 ## 3.2 Submit job
 
-Edit `project.cfg` and call
+If you use Knox, set the KNOX_CREDENTIALS environment variable
+
+```bash
+export KNOX_CREDENTIALS=username:password
+```
+
+Then edit `project.cfg` and call
 
 ```bash
 python spark-remote-submit.py
