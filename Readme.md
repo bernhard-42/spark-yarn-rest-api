@@ -92,6 +92,7 @@ curl -i -X PUT -T "target/scala-2.10/$APP_FILE" "$LOCATION"
 cd ..
 ```
 
+
 ## 3.2 Submit job
 
 If you use Knox, set the KNOX_CREDENTIALS environment variable
@@ -112,6 +113,7 @@ python spark-remote-submit.py
 # 
 # ==> Job tracking URL: http://192.168.56.239:8088/ws/v1/cluster/apps/application_1460392460492_0025
 ```
+
 
 ## 3.3 Track job
 
