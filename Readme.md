@@ -16,8 +16,8 @@ sudo su - hdfs
 HDP_VERSION=2.4.0.0-169
 SPARK_JAR=spark-assembly-1.6.0.2.4.0.0-169-hadoop2.7.1.2.4.0.0-169.jar
 
-hdfs dfs -mkdir "/hdp/apps/$HDP_VERSION/spark/"
-hdfs dfs -put "/usr/hdp/$HDP_VERSION/spark/lib/$SPARK_JAR" "/hdp/apps/$HDP_VERSION/spark/spark-hdp-assembly.jar"
+hdfs dfs -mkdir "/hdp/apps/${HDP_VERSION}/spark/"
+hdfs dfs -put "/usr/hdp/${HDP_VERSION}/spark/lib/$SPARK_JAR" "/hdp/apps/${HDP_VERSION}/spark/spark-hdp-assembly.jar"
 ```
 
 
@@ -32,16 +32,14 @@ wget https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data
 Create a project folder in HDFS using WebHDFS
 
 ```bash
-export WEBHDFS_HOST=http://beebox01:50070
-
-curl -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project?op=MKDIRS"
+curl -X PUT "${WEBHDFS_HOST}:50070/webhdfs/v1/tmp/simple-project?op=MKDIRS"
 # {"boolean":true}
 ```
 
 Upload data to project folder using WebHDFS
 
 ```bash
-curl -i -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project/iris.data?op=CREATE&overwrite=true"
+curl -i -X PUT "${WEBHDFS_HOST}/webhdfs/v1/tmp/simple-project/iris.data?op=CREATE&overwrite=true"
 # HTTP/1.1 307 TEMPORARY_REDIRECT
 # Cache-Control: no-cache
 # Expires: Sun, 10 Apr 2016 11:35:44 GMT
@@ -50,14 +48,14 @@ curl -i -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project/iris.data?op=CREATE&
 # Expires: Sun, 10 Apr 2016 11:35:44 GMT
 # Date: Sun, 10 Apr 2016 11:35:44 GMT
 # Pragma: no-cache
-# Location: http://beebox06.localdomain:50075/webhdfs/v1/tmp/simple-project/simple-project_2.10-1.0.jar?op=CREATE&namenoderpcaddress=beebox01.localdomain:8020&createflag=&# createparent=true&overwrite=true
+# Location: http://<<NameNode>>:50075/webhdfs/v1/tmp/simple-project/simple-project_2.10-1.0.jar?op=CREATE&namenoderpcaddress=<<NameNode>>:8020&createflag=&# createparent=true&overwrite=true
 # Content-Type: application/octet-stream
 # Content-Length: 0
 # Server: Jetty(6.1.26.hwx)
 
-LOCATION="http://beebox06.localdomain:50075/webhdfs/v1/tmp/simple-project/simple-project_2.10-1.0.jar?op=CREATE&namenoderpcaddress=beebox01.localdomain:8020&createflag=&createparent=true&overwrite=true"
+LOCATION="http://<<NameNode>>:50075/webhdfs/v1/tmp/simple-project/simple-project_2.10-1.0.jar?op=CREATE&namenoderpcaddress=<<NameNode>>:8020&createflag=&createparent=true&overwrite=true"
 
-curl -i -X PUT -T "iris.data" "$LOCATION"
+curl -i -X PUT -T "iris.data" "${LOCATION}"
 ```
 
 
@@ -82,12 +80,12 @@ sbt package
 
 export APP_FILE=simple-project_2.10-1.0.jar
 
-curl -i -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project/$APP_FILE?op=CREATE&overwrite=true"
+curl -i -X PUT "${WEBHDFS_HOST}/webhdfs/v1/tmp/simple-project/${APP_FILE}?op=CREATE&overwrite=true"
 # take Location header, see above
 
 LOCATION="http://..."
 
-curl -i -X PUT -T "target/scala-2.10/$APP_FILE" "$LOCATION"
+curl -i -X PUT -T "target/scala-2.10/${APP_FILE}" "${LOCATION}"
 
 cd ..
 ```
@@ -95,13 +93,19 @@ cd ..
 
 ## 3.2 Submit job
 
-If you use Knox, set the KNOX_CREDENTIALS environment variable
+Notes:
 
-```bash
-export KNOX_CREDENTIALS=username:password
-```
+- If you use Knox with Basic Authentication to access the cluster, set the KNOX_CREDENTIALS environment variable
 
-Then copy `project.cfg.template` to `project.cfg`, edit hostnames and call
+	```bash
+	export KNOX_CREDENTIALS=<<username>>:<<password>>
+	```
+
+- If the cluster behind Knox is or should be kerberized, look at [./Readme-Knox-Kerberos.md](Readme-Knox-Kerberos.md)
+
+
+
+Copy `project.cfg.template` to `project.cfg`, edit hostnames and call
 
 ```bash
 python spark-remote-submit.py
@@ -111,14 +115,14 @@ python spark-remote-submit.py
 # Creating Spark Job file ...
 # Submitting Spark Job ...
 # 
-# ==> Job tracking URL: http://192.168.56.239:8088/ws/v1/cluster/apps/application_1460392460492_0025
+# ==> Job tracking URL: http://${HADOOP_RM}:8088/ws/v1/cluster/apps/application_1460392460492_0025
 ```
 
 
 ## 3.3 Track job
 
 ```bash
-curl -s http://192.168.56.239:8088/ws/v1/cluster/apps/application_1460392460492_0025 | jq .
+curl -s http://${HADOOP_RM}:8088/ws/v1/cluster/apps/application_1460392460492_0025 | jq .
 # {
 #   "app": {
 #     "id": "application_1460392460492_0025",
@@ -129,7 +133,7 @@ curl -s http://192.168.56.239:8088/ws/v1/cluster/apps/application_1460392460492_
 #     "finalStatus": "SUCCEEDED",
 #     "progress": 100,
 #     "trackingUI": "History",
-#     "trackingUrl": "http://hdp-sa-239.localdomain:8088/proxy/application_1460392460492_0025/",
+#     "trackingUrl": "http://<<NameNode>>:8088/proxy/application_1460392460492_0025/",
 #     "diagnostics": "",
 #     "clusterId": 1460392460492,
 #     "applicationType": "YARN",
@@ -137,8 +141,8 @@ curl -s http://192.168.56.239:8088/ws/v1/cluster/apps/application_1460392460492_
 #     "startedTime": 1460413592029,
 #     "finishedTime": 1460413612191,
 #     "elapsedTime": 20162,
-#     "amContainerLogs": "http://hdp-sa-239:8042/node/containerlogs/container_e03_1460392460492_0025_01_000001/dr.who",
-#     "amHostHttpAddress": "hdp-sa-239:8042",
+#     "amContainerLogs": "http://<<NodeManager>>:8042/node/containerlogs/container_e03_1460392460492_0025_01_000001/dr.who",
+#     "amHostHttpAddress": "<<ApplicationMasterHost>>:8042",
 #     "allocatedMB": -1,
 #     "allocatedVCores": -1,
 #     "runningContainers": -1,
@@ -172,7 +176,7 @@ Copy `spark-yarn.properties.template` to `spark-yarn.properties` and edit keys i
 Upload `spark-yarn.properties` to the project folder in HDFS
 
 ```bash
-curl -i -X PUT "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project/spark-yarn.properties?op=CREATE&overwrite=true"
+curl -i -X PUT "${WEBHDFS_HOST}/webhdfs/v1/tmp/simple-project/spark-yarn.properties?op=CREATE&overwrite=true"
 # take Location header, see above
 
 LOCATION="http://..."
@@ -184,19 +188,19 @@ curl -i -X PUT -T "spark-yarn.properties" "$LOCATION"
 For caching purposes Spark needs file sizes and modification times of all project files. The following commands use the json processor `jq` from [https://stedolan.github.io/jq/](https://stedolan.github.io/jq/)
 
 ```bash
-curl -s "$WEBHDFS_HOST/webhdfs/v1/hdp/apps/2.4.0.0-169/spark/spark-hdp-assembly.jar?op=GETFILESTATUS" \
+curl -s "${WEBHDFS_HOST}/webhdfs/v1/hdp/apps/2.4.0.0-169/spark/spark-hdp-assembly.jar?op=GETFILESTATUS" \
 | jq '.FileStatus | {size: .length, timestamp: .modificationTime}'
 # {
 #   "size": 191724610,
 #   "timestamp": 1460219553714
 # }
-curl -s "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project/simple-project_2.10-1.0.jar?op=GETFILESTATUS" \
+curl -s "${WEBHDFS_HOST}/webhdfs/v1/tmp/simple-project/simple-project_2.10-1.0.jar?op=GETFILESTATUS" \
 | jq '.FileStatus | {size: .length, timestamp: .modificationTime}'
 # {
 #   "size": 10270,
 #   "timestamp": 1460288240001
 # }
-curl -s "$WEBHDFS_HOST/webhdfs/v1/tmp/simple-project/spark-yarn.properties?op=GETFILESTATUS" \
+curl -s "${WEBHDFS_HOST}/webhdfs/v1/tmp/simple-project/spark-yarn.properties?op=GETFILESTATUS" \
 | jq '.FileStatus | {size: .length, timestamp: .modificationTime}'
 # {
 #   "size": 767,
@@ -220,9 +224,7 @@ Also adapt versions in `CLASSPATH` of section `environment` and in the `command`
 ### 4.3.1 Create a YARN application
 
 ```bash
-export HADOOP_RM=http://beebox04:8088
-
-curl -s -X POST $HADOOP_RM/ws/v1/cluster/apps/new-application | jq .
+curl -s -X POST ${HADOOP_RM}/ws/v1/cluster/apps/new-application | jq .
 # {
 #   "application-id": "application_1460195242962_0051",
 #   "maximum-resource-capability": {
@@ -238,7 +240,7 @@ Edit `spark-yarn.json` again and modify the `application-id` to hold the newly c
 ### 4.3.2 Submit the Spark job
 
 ```bash 
-curl -s -i -X POST -H "Content-Type: application/json" $HADOOP_RM/ws/v1/cluster/apps --data-binary spark-yar.json 
+curl -s -i -X POST -H "Content-Type: application/json" ${HADOOP_RM}/ws/v1/cluster/apps --data-binary spark-yar.json 
 # HTTP/1.1 100 Continue
 # 
 # HTTP/1.1 202 Accepted
@@ -250,7 +252,7 @@ curl -s -i -X POST -H "Content-Type: application/json" $HADOOP_RM/ws/v1/cluster/
 # Date: Sun, 10 Apr 2016 13:02:47 GMT
 # Pragma: no-cache
 # Content-Type: application/json
-# Location: http://beebox04:8088/ws/v1/cluster/apps/application_1460195242962_0054
+# Location: http://<<Resourcemanager>>:8088/ws/v1/cluster/apps/application_1460195242962_0054
 # Content-Length: 0
 # Server: Jetty(6.1.26.hwx)
 ```
@@ -261,7 +263,7 @@ curl -s -i -X POST -H "Content-Type: application/json" $HADOOP_RM/ws/v1/cluster/
 Take the `Location` header from above:
 
 ```bash
-curl -s http://beebox04:8088/ws/v1/cluster/apps/application_1460195242962_0054 | jq .
+curl -s "http://<<Resourcemanager>>:8088/ws/v1/cluster/apps/application_1460195242962_0054" | jq .
 # {
 #   "app": {
 #     "id": "application_1460195242962_0054",
@@ -272,7 +274,7 @@ curl -s http://beebox04:8088/ws/v1/cluster/apps/application_1460195242962_0054 |
 #     "finalStatus": "SUCCEEDED",
 #     "progress": 100,
 #     "trackingUI": "History",
-#     "trackingUrl": "http://beebox04.localdomain:8088/proxy/application_1460195242962_0054/",
+#     "trackingUrl": "http://<<ResourceManager>>:8088/proxy/application_1460195242962_0054/",
 #     "diagnostics": "",
 #     "clusterId": 1460195242962,
 #     "applicationType": "YARN",
@@ -280,8 +282,8 @@ curl -s http://beebox04:8088/ws/v1/cluster/apps/application_1460195242962_0054 |
 #     "startedTime": 1460293367576,
 #     "finishedTime": 1460293413568,
 #     "elapsedTime": 45992,
-#     "amContainerLogs": "http://beebox03.localdomain:8042/node/containerlogs/container_e29_1460195242962_0054_01_000001/dr.who",
-#     "amHostHttpAddress": "beebox03.localdomain:8042",
+#     "amContainerLogs": "http://<<NodeManager>>:8042/node/containerlogs/container_e29_1460195242962_0054_01_000001/dr.who",
+#     "amHostHttpAddress": "<<ApplicationMasterHost>>:8042",
 #     "allocatedMB": -1,
 #     "allocatedVCores": -1,
 #     "runningContainers": -1,
@@ -303,7 +305,7 @@ curl -s http://beebox04:8088/ws/v1/cluster/apps/application_1460195242962_0054 |
 Note: The partition name depends on run, find it via WebHDFS and `LISTSTATUS`
 
 ```bash
-curl -s -L $WEBHDFS_HOST/webhdfs/v1/tmp/iris/means/part-r-00000-a1d003bf-246b-47b5-9d61-10dede1c3981?op=OPEN | jq .
+curl -s -L ${WEBHDFS_HOST}/webhdfs/v1/tmp/iris/means/part-r-00000-a1d003bf-246b-47b5-9d61-10dede1c3981?op=OPEN | jq .
 # {
 #   "species": "Iris-setosa",
 #   "avg(sepalLength)": 5.005999999999999,
