@@ -240,7 +240,7 @@ Edit `spark-yarn.json` again and modify the `application-id` to hold the newly c
 ### 4.3.2 Submit the Spark job
 
 ```bash 
-curl -s -i -X POST -H "Content-Type: application/json" ${HADOOP_RM}/ws/v1/cluster/apps --data-binary spark-yar.json 
+curl -s -i -X POST -H "Content-Type: application/json" ${HADOOP_RM}/ws/v1/cluster/apps --data-binary spark-yarn.json 
 # HTTP/1.1 100 Continue
 # 
 # HTTP/1.1 202 Accepted
